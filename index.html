@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swipable Portrait Images with Editable Text</title>
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+
+        .swiper {
+            width: 90%;
+            max-width: 500px;
+            height: calc(500px * 16 / 9); 
+        }
+
+        .swiper-slide {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .swiper-slide img {
+            width: auto;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .text-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .editable-text {
+            position: absolute;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            cursor: move;
+            word-wrap: break-word;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .controls input,
+        .controls select,
+        .controls button {
+            padding: 8px;
+            height: 40px;
+            width: 120px;
+            text-align: center;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+        }
+
+        .controls button {
+            background-color: #f4f4f4;
+            cursor: pointer;
+        }
+
+        .controls button:hover {
+            background-color: #FFEEEE;
+            color: black;
+            transform: scale(1.05);
+        }
+
+        .controls .color-picker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .color-picker input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .color-picker label {
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="swiper">
+    <div class="swiper-wrapper">
+        
+        <div class="swiper-slide">
+            <img src="https://picsum.photos/id/10/720/1280" alt="Portrait 1">
+            <div class="text-layer"></div>
+        </div>
+       
+        <div class="swiper-slide">
+            <img src="https://picsum.photos/720/1280?random=1" alt="Portrait 2">
+            <div class="text-layer"></div>
+        </div>
+       
+        <div class="swiper-slide">
+            <img src="https://picsum.photos/id/30/720/1280" alt="Portrait 3">
+            <div class="text-layer"></div>
+        </div>
+    </div>
+    
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+</div>
+
+<div class="controls">
+    <button id="addText" style="height: 36px;">Add Text</button>
+    <div class="color-picker">
+        <label for="textColor">Color</label>
+        <input type="color" id="textColor" value="#ffffff" style="height: 16px;">
+    </div>
+    <select id="fontFamily" style="height: 36px;">
+        <option value="Arial">Arial</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times New Roman</option>
+    </select>
+    <input type="number" id="fontSize" placeholder="Font Size" min="10" max="100" value="16"style="height: 16px;">
+    <input type="number" id="lineHeight" placeholder="Line Height" min="1" max="5" step="0.1" value="1.5" style="height: 16px;">
+    <select id="animationEase" style="height: 36px;">
+        <option value="ease-in">Ease In</option>
+        <option value="ease-out">Ease Out</option>
+        <option value="ease-in-out" selected>Ease In Out</option>
+    </select>
+    <button id="startAnimation" style="height: 36px;">Start Animation</button>
+    <button id="boldText" style="height: 36px;">Bold</button>
+    <button id="italicText" >Italic</button>
+</div>
+
+
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script>
+    const swiper = new Swiper('.swiper', {
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+    });
+
+    const addTextButton = document.getElementById('addText');
+    const textColorInput = document.getElementById('textColor');
+    const fontFamilySelect = document.getElementById('fontFamily');
+    const fontSizeInput = document.getElementById('fontSize');
+    const lineHeightInput = document.getElementById('lineHeight');
+    const animationEaseSelect = document.getElementById('animationEase');
+    const startAnimationButton = document.getElementById('startAnimation');
+    const boldTextButton = document.getElementById('boldText');
+    const italicTextButton = document.getElementById('italicText');
+
+    let activeText = null;
+
+    addTextButton.addEventListener('click', () => {
+        const activeSlide = swiper.slides[swiper.activeIndex];
+        const textLayer = activeSlide.querySelector('.text-layer');
+
+        const textElement = document.createElement('div');
+        textElement.classList.add('editable-text');
+        textElement.contentEditable = true;
+        textElement.innerText = 'Edit Me';
+        textElement.style.color = textColorInput.value;
+        textElement.style.fontFamily = fontFamilySelect.value;
+        textElement.style.fontSize = `${fontSizeInput.value}px`;
+        textElement.style.lineHeight = `${lineHeightInput.value}`;
+        textElement.style.left = '50%';
+        textElement.style.top = '50%';
+        textElement.style.transform = 'translate(-50%, -50%)';
+
+        textElement.addEventListener('mousedown', (e) => {
+            activeText = textElement;
+            const rect = textLayer.getBoundingClientRect();
+            const offsetX = e.clientX - textElement.offsetLeft;
+            const offsetY = e.clientY - textElement.offsetTop;
+
+            const onMouseMove = (moveEvent) => {
+                let newX = moveEvent.clientX - offsetX;
+                let newY = moveEvent.clientY - offsetY;
+
+              
+                newX = Math.max(0, Math.min(newX, rect.width - textElement.offsetWidth));
+                newY = Math.max(0, Math.min(newY, rect.height - textElement.offsetHeight));
+
+                textElement.style.left = `${newX}px`;
+                textElement.style.top = `${newY}px`;
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', () => {
+                document.removeEventListener('mousemove', onMouseMove);
+            }, { once: true });
+        });
+
+        textLayer.appendChild(textElement);
+    });
+
+    textColorInput.addEventListener('input', () => {
+        if (activeText) activeText.style.color = textColorInput.value;
+    });
+
+    fontFamilySelect.addEventListener('change', () => {
+        if (activeText) activeText.style.fontFamily = fontFamilySelect.value;
+    });
+
+    fontSizeInput.addEventListener('input', () => {
+        if (activeText) activeText.style.fontSize = `${fontSizeInput.value}px`;
+    });
+
+    lineHeightInput.addEventListener('input', () => {
+        if (activeText) activeText.style.lineHeight = `${lineHeightInput.value}`;
+    });
+
+    boldTextButton.addEventListener('click', () => {
+        if (activeText) {
+            activeText.style.fontWeight = activeText.style.fontWeight === 'bold' ? 'normal' : 'bold';
+        }
+    });
+
+    italicTextButton.addEventListener('click', () => {
+        if (activeText) {
+            activeText.style.fontStyle = activeText.style.fontStyle === 'italic' ? 'normal' : 'italic';
+        }
+    });
+
+    startAnimationButton.addEventListener('click', () => {
+        if (activeText) {
+            const easing = animationEaseSelect.value; 
+            activeText.style.animation = `fadeInMoveSlide 1.5s ${easing}`;
+            
+            
+            activeText.addEventListener('animationend', () => {
+                activeText.style.animation = '';
+            }, { once: true });
+        }
+    });
+
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeInMoveSlide {
+            0% {
+                opacity: 0;
+                transform: translate(100%, -20px);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translate(50%, 0);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+
+</body>
+</html>
